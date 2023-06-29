@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-"""
-Performs basic cleaning of the parameters [parameter1, parameter2]: parameter1, parameter2, parameter3
-"""
+
 import argparse
 import logging
 import wandb
+import os
+import pandas as pd
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
@@ -16,34 +16,71 @@ def go(args):
     run = wandb.init(job_type="basic_cleaning")
     run.config.update(args)
 
-    # Download input artifact. This will also log that this script is using this
-    # particular version of the artifact
-    # artifact_local_path = run.use_artifact(args.input_artifact).file()
+    logger.info("Downloading artifact")
+    artifact = run.use_artifact(args.input_artifact)
+    artifact_path = artifact.file()
 
-    ######################
-    # YOUR CODE HERE     #
-    ######################
+    df = pd.read_parquet(artifact_path)
+
+    # Drop the duplicates
+    logger.info("Dropping duplicates")
+    df = df.drop_duplicates().reset_index(drop=True)
+
+    # A minimal feature engineering step: a new feature
+    logger.info("Feature engineering")
+    df['title'].fillna(value='', inplace=True)
+    df['song_name'].fillna(value='', inplace=True)
+    df['text_feature'] = df['title'] + ' ' + df['song_name']
+
+    filename = "processed_data.csv"
+    df.to_csv(filename)
+
+    artifact = wandb.Artifact(
+        name=args.artifact_name,
+        type=args.artifact_type,
+        description=args.artifact_description,
+    )
+    artifact.add_file(filename)
+
+    logger.info("Logging artifact")
+    run.log_artifact(artifact)
+
+    os.remove(filename)
 
 
 if __name__ == "__main__":
-
-    parser = argparse.ArgumentParser(description="This steps cleans the data")
-
+    parser = argparse.ArgumentParser(
+        description="Preprocess a dataset",
+        fromfile_prefix_chars="@",
+    )
 
     parser.add_argument(
-        "--parameter1", 
-        type=## INSERT TYPE HERE: str, float or int,
-        help=## INSERT DESCRIPTION HERE,
+        "--input_artifact",
+        type=str,
+        help="Fully-qualified name for the input artifact",
+        required=True,
+    )
+
+    parser.add_argument(
+        "--artifact_name",
+        type=str,
+        help="Name for the artifact",
         required=True
     )
 
     parser.add_argument(
-        "--parameter2", 
-        type=## INSERT TYPE HERE: str, float or int,
-        help=## INSERT DESCRIPTION HERE,
+        "--artifact_type",
+        type=str,
+        help="Type for the artifact",
         required=True
     )
 
+    parser.add_argument(
+        "--artifact_description",
+        type=str,
+        help="Description for the artifact",
+        required=True,
+    )
 
     args = parser.parse_args()
 
