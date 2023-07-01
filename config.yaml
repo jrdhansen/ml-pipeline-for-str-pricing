@@ -23,13 +23,13 @@ modeling:
   stratify_by: "neighbourhood_group"
   # Maximum number of features to consider for the TFIDF applied to the title of the
   # insertion (the column called "name")
-  max_tfidf_features: 5
+  max_tfidf_features: 9
   random_forest:
-    n_estimators: 100
-    max_depth: 15
+    n_estimators: 500
+    max_depth: 16
     min_samples_split: 4
     min_samples_leaf: 3
     n_jobs: -1
     criterion: mae
-    max_features: 0.5
+    max_features: 0.3
     oob_score: true  # do not change
