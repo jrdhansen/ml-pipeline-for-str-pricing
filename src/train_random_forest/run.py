@@ -84,14 +84,14 @@ def go(args):
     y_pred = sk_pipe.predict(X_val)
     mae = mean_absolute_error(y_val, y_pred)
 
-    logger.info(f"Score: {r_squared}")
+    logger.info(f"R-squared: {r_squared}")
     logger.info(f"MAE: {mae}")
 
     logger.info("Exporting model")
 
     # Save model package in the MLFlow sklearn format
-    if os.path.exists("random_forest_dir"):
-        shutil.rmtree("random_forest_dir")
+    #if os.path.exists("random_forest_dir"):
+    #    shutil.rmtree("random_forest_dir")
 
     ######################################
     # Save the sk_pipe pipeline as a mlflow.sklearn model in the directory "random_forest_dir"
@@ -109,26 +109,28 @@ def go(args):
         )
     ######################################
 
-    ######################################
-    # Upload the model we just exported to W&B
-    # HINT: use wandb.Artifact to create an artifact. Use args.output_artifact as artifact name, "model_export" as
-    # type, provide a description and add rf_config as metadata. Then, use the .add_dir method of the artifact instance
-    # you just created to add the "random_forest_dir" directory to the artifact, and finally use
-    # run.log_artifact to log the artifact to the run
-    artifact = wandb.Artifact(
-        name=args.output_artifact,
-        type="model_export",
-        description="Random Forest pipeline export",
-        metadata=rf_config,
-    )
-    artifact.add_dir(export_path)
+        # Putting all of this within scope of context manager so that saved model will 
+        # be properly written out to dir
+        ######################################
+        # Upload the model we just exported to W&B
+        # HINT: use wandb.Artifact to create an artifact. Use args.output_artifact as artifact name, "model_export" as
+        # type, provide a description and add rf_config as metadata. Then, use the .add_dir method of the artifact instance
+        # you just created to add the "random_forest_dir" directory to the artifact, and finally use
+        # run.log_artifact to log the artifact to the run
+        artifact = wandb.Artifact(
+            name=args.output_artifact,
+            type="model_export",
+            description="Random Forest pipeline export",
+            metadata=rf_config,
+        )
+        artifact.add_dir(export_path)
 
-    run.log_artifact(artifact)
+        run.log_artifact(artifact)
 
-    # Make sure the artifact is uploaded before the temp dir
-    # gets deleted
-    artifact.wait()
-    ######################################
+        # Make sure the artifact is uploaded before the temp dir
+        # gets deleted
+        artifact.wait()
+        ######################################
 
     # Plot feature importance
     fig_feat_imp = plot_feature_importance(sk_pipe, processed_features)
@@ -150,6 +152,7 @@ def go(args):
           "feature_importance": wandb.Image(fig_feat_imp),
         }
     )
+
 
 def plot_feature_importance(pipe, feat_names):
     # We collect the feature importance for all non-nlp features first
@@ -250,7 +253,6 @@ def get_inference_pipeline(rf_config, max_tfidf_features):
             ("random_forest", random_forest)
         ]
     )
-    # YOUR CODE HERE
 
     return sk_pipe, processed_features
 
