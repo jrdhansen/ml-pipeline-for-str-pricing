@@ -38,6 +38,7 @@ def go(config: DictConfig):
         if "download" in active_steps:
             # Download file and load in W&B
             _ = mlflow.run(
+                # os.path.join(hydra.utils.get_original_cwd(), "components", "get_data"),
                 f"{config['main']['components_repository']}/get_data",
                 "main",
                 version='main',
