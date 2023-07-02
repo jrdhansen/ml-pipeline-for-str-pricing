@@ -1,6 +1,6 @@
 # Cookiecutter template for MLFlow steps
 
-Using this template you can quickly generate new steps to be used with MLFlow.
+Using this template you can quickly generate new steps to be used with MLFlow.  
 
 # Usage
 Run the command:
