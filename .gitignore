@@ -107,9 +107,15 @@ venv.bak/
 .idea/
 
 *.DS_Store
+**/.DS_Store
 artifacts/
+**/artifacts/
 wandb/
+**/wandb/
 mlruns/
+**/mlruns/
 outputs/
+**/outputs/
 random_forest_dir/
 multirun/
+**/multirun/
